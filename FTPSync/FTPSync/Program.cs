@@ -15,11 +15,11 @@ namespace FTPSync
         static void Main(string[] args)
         {
             string directory = Properties.Settings.Default.localPath;
-            string remotePath = Properties.Settings.Default.localPath;
-            string host = Properties.Settings.Default.localPath;
-            string port = Properties.Settings.Default.localPath;
-            string username = Properties.Settings.Default.localPath;
-            string password = Properties.Settings.Default.localPath;
+            string remotePath = Properties.Settings.Default.remotePath;
+            string host = Properties.Settings.Default.host;
+            string port = Properties.Settings.Default.port;
+            string username = Properties.Settings.Default.username;
+            string password = Properties.Settings.Default.password;
             ftp = new FTP(host, username, password, port, remotePath);
             filePath = new Uri(directory);
             Thread taskThd = new Thread(() => {
