@@ -25,7 +25,7 @@ namespace FTPSync.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\Sam\\Desktop\\localDevTest\\")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\")]
         public string localPath {
             get {
                 return ((string)(this["localPath"]));

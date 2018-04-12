@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,9 +44,10 @@ namespace FTPSync
         /// </summary>
         /// <param name="file">The relative file path</param>
         /// <param name="method">The ftp method i.e. what to do - <see cref="WebRequestMethods.Ftp"/></param>
-        /// <param name="callback"></param>
+        /// <param name="requestCallback"></param>
+        /// <param name="responseCallback"></param>
         /// <returns></returns>
-        private bool MakeFTPRequest(string file, string method, Action<FtpWebRequest> callback = null)
+        private bool MakeFTPRequest(string file, string method, Action<FtpWebRequest> requestCallback = null, Action<FtpWebResponse> responseCallback  = null)
         {
             Uri uri = new Uri($"ftp://{host}:{port}/{file}");
             // Get the object used to communicate with the server.
@@ -52,12 +55,40 @@ namespace FTPSync
             request.Method = method;
             request.Credentials = new NetworkCredential(username, password);
 
-            callback?.Invoke(request);
+            requestCallback?.Invoke(request);
 
             FtpWebResponse response = (FtpWebResponse)request.GetResponse();
 
+            responseCallback?.Invoke(response);
+
             response.Close();
             return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <returns></returns>
+        public string[] GetDirectoryInfo(string directory)
+        {
+            return new string[0];
+        }
+
+        /// <summary>
+        /// Delete a directory from the server
+        /// </summary>
+        /// <param name="file">The relative file path</param>
+        public void DeleteDirectory(string file)
+        {
+            try
+            {
+                MakeFTPRequest(file, WebRequestMethods.Ftp.RemoveDirectory);
+            }
+            catch
+            {
+
+            }
         }
 
         /// <summary>
@@ -69,10 +100,17 @@ namespace FTPSync
             try
             {
                 MakeFTPRequest(file, WebRequestMethods.Ftp.DeleteFile);
-                MakeFTPRequest(file, WebRequestMethods.Ftp.RemoveDirectory);
             }
-            catch (Exception ex)
+            catch
             {
+                try
+                {
+                    MakeFTPRequest(file, WebRequestMethods.Ftp.RemoveDirectory);
+                }
+                catch (Exception ex)
+                {
+
+                }
             }
         }
 

@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="localPath" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">C:\Users\Sam\Desktop\localDevTest\</Value>
+      <Value Profile="(Default)">C:\Users\</Value>
     </Setting>
     <Setting Name="remotePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\</Value>

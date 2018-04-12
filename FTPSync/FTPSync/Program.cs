@@ -5,12 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
+using FluentFTP;
 
 namespace FTPSync
 {
     class Program
     {
         private static FTP ftp;
+        private static FtpClient ftpCl;
         private static Uri filePath;
         static void Main(string[] args)
         {
@@ -20,9 +22,13 @@ namespace FTPSync
             string port = Properties.Settings.Default.port;
             string username = Properties.Settings.Default.username;
             string password = Properties.Settings.Default.password;
+
+            ThreadPool.SetMaxThreads(10, 10);
+
             ftp = new FTP(host, username, password, port, remotePath);
+            ftpCl = new FtpClient(host, int.Parse(port), username, password);
             filePath = new Uri(directory);
-            Thread taskThd = new Thread(() => {
+            ThreadPool.QueueUserWorkItem((state) => {
                 FileSystemWatcher fsw = new FileSystemWatcher(directory);
                 fsw.Filter = "";
                 fsw.IncludeSubdirectories = true;
@@ -34,29 +40,55 @@ namespace FTPSync
                 fsw.Renamed += FileRenamed;
             });
 
-            taskThd.Start();
             while (true) ;
         }
 
         private static void FileRenamed(object sender, RenamedEventArgs e)
         {
-            string newName = Path.GetFileName(e.Name);
-            ftp.Rename(e.OldName, newName);
+            ThreadPool.QueueUserWorkItem((state) =>
+            {
+                string newName = Path.GetFileName(e.Name);
+                ftp.Rename(e.OldName, newName);
+            });
         }
 
         private static void FileDeleted(object sender, FileSystemEventArgs e)
         {
-            ftp.Delete(e.Name);
+            ThreadPool.QueueUserWorkItem((state) =>
+            {
+                try
+                {
+                    if (ftpCl.DirectoryExists(e.Name))
+                    {
+                        ftpCl.DeleteDirectory(e.Name);
+                    }
+                    else
+                    {
+                        ftp.Delete(e.Name);
+                    }
+                }
+                catch (FtpCommandException ex)
+                {
+
+                }
+            });
+           
         }
 
         private static void FileCreated(object sender, FileSystemEventArgs e)
         {
-            ftp.Upload(e.FullPath, e.Name);
+            ThreadPool.QueueUserWorkItem((state) =>
+            {
+                ftp.Upload(e.FullPath, e.Name);
+            });
         }
 
         private static void FileChanged(object sender, FileSystemEventArgs e)
         {
-            ftp.Upload(e.FullPath, e.Name);
+            ThreadPool.QueueUserWorkItem((state) =>
+            {
+                ftp.Upload(e.FullPath, e.Name);
+            });
         }
     }
 }
