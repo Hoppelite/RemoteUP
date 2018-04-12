@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
+using System.Windows.Forms;
 using FluentFTP;
 
 namespace FTPSync
@@ -16,6 +17,9 @@ namespace FTPSync
         private static Uri filePath;
         static void Main(string[] args)
         {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+           
             string directory = Properties.Settings.Default.localPath;
             string remotePath = Properties.Settings.Default.remotePath;
             string host = Properties.Settings.Default.host;
@@ -40,7 +44,7 @@ namespace FTPSync
                 fsw.Renamed += FileRenamed;
             });
 
-            while (true) ;
+            Application.Run(new TaskTray(Properties.Resources.Circle_icons_upload));
         }
 
         private static void FileRenamed(object sender, RenamedEventArgs e)
