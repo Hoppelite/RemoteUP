@@ -66,16 +66,6 @@ namespace FTPSync
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="directory"></param>
-        /// <returns></returns>
-        public string[] GetDirectoryInfo(string directory)
-        {
-            return new string[0];
-        }
-
-        /// <summary>
         /// Delete a directory from the server
         /// </summary>
         /// <param name="file">The relative file path</param>
@@ -109,7 +99,7 @@ namespace FTPSync
                 }
                 catch (Exception ex)
                 {
-
+                    throw ex;
                 }
             }
         }
@@ -126,7 +116,7 @@ namespace FTPSync
                 MakeFTPRequest(file, WebRequestMethods.Ftp.Rename, req => req.RenameTo = newName);
             } catch (Exception ex)
             {
-
+                throw ex;
             }
             
         }
@@ -163,7 +153,7 @@ namespace FTPSync
                 
             } catch (Exception ex)
             {
-
+                throw ex;
             }
         }
     }

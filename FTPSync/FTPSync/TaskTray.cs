@@ -26,6 +26,15 @@ namespace FTPSync
         }
 
 
+        public void ShowAlert(string text, ToolTipIcon icon, string title, int time = 1000)
+        {
+            nIcon.BalloonTipText = text;
+            nIcon.BalloonTipIcon = icon;
+            nIcon.BalloonTipTitle = title;
+            nIcon.ShowBalloonTip(time);
+        }
+
+
         private void CloseMenu_Click(object sender, EventArgs e)
         {
             nIcon.Visible = false;

@@ -15,6 +15,8 @@ namespace FTPSync
         private static FTP ftp;
         private static FtpClient ftpCl;
         private static Uri filePath;
+        private static TaskTray tt;
+
         static void Main(string[] args)
         {
             Application.EnableVisualStyles();
@@ -43,16 +45,22 @@ namespace FTPSync
                 fsw.Deleted += FileDeleted;
                 fsw.Renamed += FileRenamed;
             });
-
-            Application.Run(new TaskTray(Properties.Resources.Circle_icons_upload));
+            tt = new TaskTray(Properties.Resources.Circle_icons_upload);
+            Application.Run(tt);
         }
 
         private static void FileRenamed(object sender, RenamedEventArgs e)
         {
             ThreadPool.QueueUserWorkItem((state) =>
             {
-                string newName = Path.GetFileName(e.Name);
-                ftp.Rename(e.OldName, newName);
+                try
+                {
+                    string newName = Path.GetFileName(e.Name);
+                    ftp.Rename(e.OldName, newName);
+                } catch (Exception ex)
+                {
+                    tt.ShowAlert($"Failed to rename file on server: {ex.Message}", ToolTipIcon.Error, $"Rename File: {e.OldName} - {e.Name}", 2000);
+                }
             });
         }
 
@@ -60,21 +68,27 @@ namespace FTPSync
         {
             ThreadPool.QueueUserWorkItem((state) =>
             {
-                try
-                {
                     if (ftpCl.DirectoryExists(e.Name))
                     {
-                        ftpCl.DeleteDirectory(e.Name);
+                        try
+                        {
+                            ftpCl.DeleteDirectory(e.Name);
+                        } catch (Exception ex)
+                        {
+                            tt.ShowAlert($"Failed to delete directory on server: {ex.Message}", ToolTipIcon.Error, $"Delete Directory: {e.FullPath}", 2000);
+                        }
                     }
                     else
                     {
-                        ftp.Delete(e.Name);
+                        try
+                        {
+                            ftp.Delete(e.Name);
+                        }
+                        catch (Exception ex)
+                        {
+                            tt.ShowAlert($"Failed to delete file on server: {ex.Message}", ToolTipIcon.Error, $"Delete File: {e.FullPath}", 2000);
+                        }
                     }
-                }
-                catch (FtpCommandException ex)
-                {
-
-                }
             });
            
         }
@@ -83,7 +97,14 @@ namespace FTPSync
         {
             ThreadPool.QueueUserWorkItem((state) =>
             {
-                ftp.Upload(e.FullPath, e.Name);
+                try
+                {
+                    ftp.Upload(e.FullPath, e.Name);
+                } catch (Exception ex)
+                {
+                    tt.ShowAlert($"Failed to create file on server: {ex.Message}", ToolTipIcon.Error, $"Create File: {e.FullPath}", 2000);
+                }
+                
             });
         }
 
@@ -91,7 +112,13 @@ namespace FTPSync
         {
             ThreadPool.QueueUserWorkItem((state) =>
             {
-                ftp.Upload(e.FullPath, e.Name);
+                try
+                {
+                    ftp.Upload(e.FullPath, e.Name);
+                } catch (Exception ex)
+                {
+                    tt.ShowAlert($"Failed to modify file on server: {ex.Message}", ToolTipIcon.Error, $"Modify File: {e.FullPath}", 2000);
+                }
             });
         }
     }
