@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using FluentFTP;
+using System.Text.RegularExpressions;
 
 namespace FTPSync
 {
@@ -16,6 +17,7 @@ namespace FTPSync
         private static FtpClient ftpCl;
         private static Uri filePath;
         private static TaskTray tt;
+        private static string[] fileFilters;
 
         static void Main(string[] args)
         {
@@ -49,8 +51,15 @@ namespace FTPSync
             Application.Run(tt);
         }
 
+        private static bool IsMonitored(string fileName)
+        {
+            if (fileFilters.Count() == 0) return true;
+            return fileFilters.Any(x => Regex.IsMatch(x, fileName));
+        }
+
         private static void FileRenamed(object sender, RenamedEventArgs e)
         {
+            if (!IsMonitored(e.FullPath)) return;
             ThreadPool.QueueUserWorkItem((state) =>
             {
                 try
@@ -66,6 +75,7 @@ namespace FTPSync
 
         private static void FileDeleted(object sender, FileSystemEventArgs e)
         {
+            if (!IsMonitored(e.FullPath)) return;
             ThreadPool.QueueUserWorkItem((state) =>
             {
                     if (ftpCl.DirectoryExists(e.Name))
@@ -95,6 +105,7 @@ namespace FTPSync
 
         private static void FileCreated(object sender, FileSystemEventArgs e)
         {
+            if (!IsMonitored(e.FullPath)) return;
             ThreadPool.QueueUserWorkItem((state) =>
             {
                 try
@@ -110,6 +121,7 @@ namespace FTPSync
 
         private static void FileChanged(object sender, FileSystemEventArgs e)
         {
+            if (!IsMonitored(e.FullPath)) return;
             ThreadPool.QueueUserWorkItem((state) =>
             {
                 try

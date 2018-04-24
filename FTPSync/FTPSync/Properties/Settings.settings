@@ -8,17 +8,20 @@
     <Setting Name="remotePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\</Value>
     </Setting>
-    <Setting Name="host" Type="System.String" Scope="User">
+    <Setting Name="host" Type="System.String" Scope="Application">
       <Value Profile="(Default)">localhost</Value>
     </Setting>
-    <Setting Name="port" Type="System.String" Scope="User">
+    <Setting Name="port" Type="System.String" Scope="Application">
       <Value Profile="(Default)">21</Value>
     </Setting>
-    <Setting Name="username" Type="System.String" Scope="User">
+    <Setting Name="username" Type="System.String" Scope="Application">
       <Value Profile="(Default)">anonymous</Value>
     </Setting>
-    <Setting Name="password" Type="System.String" Scope="User">
+    <Setting Name="password" Type="System.String" Scope="Application">
       <Value Profile="(Default)">anonymous</Value>
+    </Setting>
+    <Setting Name="includes" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>
