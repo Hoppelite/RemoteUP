@@ -30,6 +30,8 @@ namespace FTPSync
             string port = Properties.Settings.Default.port;
             string username = Properties.Settings.Default.username;
             string password = Properties.Settings.Default.password;
+            fileFilters = new string[Properties.Settings.Default.includes.Count];
+            Properties.Settings.Default.includes.CopyTo(fileFilters, 0);
 
             ThreadPool.SetMaxThreads(10, 10);
 
