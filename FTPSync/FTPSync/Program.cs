@@ -17,7 +17,8 @@ namespace FTPSync
         private static FtpClient ftpCl;
         private static Uri filePath;
         private static TaskTray tt;
-        private static string[] fileFilters;
+        private static string[] fileIncludes;
+        private static string[] fileExcludes;
 
         static void Main(string[] args)
         {
@@ -30,8 +31,15 @@ namespace FTPSync
             string port = Properties.Settings.Default.port;
             string username = Properties.Settings.Default.username;
             string password = Properties.Settings.Default.password;
-            fileFilters = new string[Properties.Settings.Default.includes.Count];
-            Properties.Settings.Default.includes.CopyTo(fileFilters, 0);
+            fileIncludes = new string[Properties.Settings.Default.includes.Count];
+            fileExcludes = new string[Properties.Settings.Default.excludes.Count];
+            Properties.Settings.Default.includes.CopyTo(fileIncludes, 0);
+            Properties.Settings.Default.excludes.CopyTo(fileExcludes, 0);
+
+            if(fileIncludes.Any(x => !IsValidRegex(x)) || fileExcludes.Any(x => !IsValidRegex(x)))
+            {
+                tt.ShowAlert($"Invalid Regular Expression", ToolTipIcon.Error, $"Regex Check Failed", 2000);
+            }
 
             ThreadPool.SetMaxThreads(10, 10);
 
@@ -53,10 +61,54 @@ namespace FTPSync
             Application.Run(tt);
         }
 
+        private static bool IsValidRegex(string pattern)
+        {
+            if (string.IsNullOrEmpty(pattern)) return false;
+
+            try
+            {
+                Regex.Match("", pattern);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool CheckIncludes(string fileName)
+        {
+            if (fileIncludes.Count() == 0) return true;
+            try
+            {
+                return fileIncludes.Any(x => Regex.IsMatch(fileName, x));
+            } catch (Exception ex)
+            {
+                tt.ShowAlert($"Failed Checking Includes: {ex.Message}", ToolTipIcon.Error, $"Includes Regex Failed", 2000);
+                Application.Exit();
+                return false;
+            }
+        }
+
+        private static bool CheckExcludes(string fileName)
+        {
+            if (fileExcludes.Count() == 0) return true;
+            try
+            {
+                return fileExcludes.All(x => !Regex.IsMatch(fileName, x));
+            }
+            catch (Exception ex)
+            {
+                tt.ShowAlert($"Failed Checking Exludes: {ex.Message}", ToolTipIcon.Error, $"Exclude Regex Failed", 2000);
+                Application.Exit();
+                return false;
+            }
+        }
+
         private static bool IsMonitored(string fileName)
         {
-            if (fileFilters.Count() == 0) return true;
-            return fileFilters.Any(x => Regex.IsMatch(x, fileName));
+            return CheckExcludes(fileName) && CheckIncludes(fileName);
         }
 
         private static void FileRenamed(object sender, RenamedEventArgs e)
